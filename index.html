@@ -2,98 +2,130 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>Чушпан в баре ЛОЛ</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Бар ЛОЛ: Хаос-челлендж</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   body {
-    background: #1a0a2e;
     font-family: 'Courier New', monospace;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    overflow: hidden;
-    color: #fff;
+    background: #0a0020;
+    min-height: 100vh;
+    display: flex; justify-content: center; align-items: center;
+    color: #fff; overflow: hidden; user-select: none;
   }
-  #game { position: relative; }
-  canvas {
-    border: 3px solid #ff006e;
-    box-shadow: 0 0 30px #ff006e;
-    background: linear-gradient(180deg, #2d0a4e 0%, #4a1a6e 50%, #1a0a2e 100%);
-  }
+  #game { position: relative; width: 100%; max-width: 500px; }
+  canvas { display:block; width:100%; background: linear-gradient(180deg,#2d0a4e 0%,#4a1a6e 60%,#1a0a2e 100%); border: 3px solid #ff006e; box-shadow: 0 0 40px #ff006e; }
   #ui {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    right: 10px;
-    display: flex;
-    justify-content: space-between;
-    font-size: 20px;
-    text-shadow: 2px 2px 0 #000;
+    position: absolute; top: 8px; left: 8px; right: 8px;
+    display: flex; justify-content: space-between; gap: 8px;
+    font-size: 14px; text-shadow: 1px 1px 0 #000; flex-wrap: wrap;
   }
+  .stat { background: rgba(0,0,0,0.5); padding: 4px 8px; border-radius: 6px; }
+  #pick { position:absolute; bottom: 10px; left: 0; right: 0; display:flex; justify-content:center; gap:6px; padding:0 8px; flex-wrap:wrap; }
+  .char { background: rgba(0,0,0,0.6); border: 2px solid #ff006e; border-radius: 8px; padding: 4px 6px; font-size: 11px; cursor: pointer; }
+  .char.active { background: #ff006e; box-shadow: 0 0 12px #ff006e; }
   #overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0,0,0,0.85);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    padding: 20px;
+    position: absolute; inset: 0; background: rgba(0,0,0,0.92);
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    text-align: center; padding: 16px; z-index: 5;
   }
-  #overlay h1 { font-size: 42px; color: #ff006e; margin-bottom: 20px; }
-  #overlay p { font-size: 18px; margin: 8px 0; }
-  button {
-    margin-top: 20px;
-    padding: 12px 30px;
-    font-size: 20px;
-    background: #ff006e;
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-family: inherit;
-  }
+  #overlay h1 { font-size: 28px; color: #ff006e; margin-bottom: 12px; text-shadow: 0 0 15px #ff006e; }
+  #overlay h2 { font-size: 22px; color: #ffcc00; margin-bottom: 10px; }
+  #overlay p { font-size: 14px; margin: 4px 0; }
+  button { margin-top: 14px; padding: 10px 24px; font-size: 16px; background: #ff006e; color: #fff; border: none; border-radius: 8px; cursor: pointer; font-family: inherit; }
   button:hover { background: #ff3388; }
   .hidden { display: none !important; }
+  .move { position:absolute; bottom: 60px; width:60px; height:60px; border-radius:50%; background: rgba(255,0,110,0.4); border:2px solid #ff006e; font-size:30px; display:flex; align-items:center; justify-content:center; }
+  #left { left: 10px; } #right { right: 10px; }
 </style>
 </head>
 <body>
 <div id="game">
-  <canvas id="canvas" width="600" height="700"></canvas>
+  <canvas id="canvas" width="500" height="700"></canvas>
   <div id="ui">
-    <span>🍺 Счёт: <b id="score">0</b></span>
-    <span>❤️ Жизни: <b id="lives">3</b></span>
-    <span>🌻 Семки: <b id="seeds">0</b></span>
+    <span class="stat">🏆 <b id="score">0</b></span>
+    <span class="stat">❤️ <b id="lives">3</b></span>
+    <span class="stat">⚡ <b id="power">100</b></span>
+    <span class="stat">🌻 <b id="seeds">0</b></span>
+  </div>
+  <div class="move" id="left">◀</div>
+  <div class="move" id="right">▶</div>
+  <div id="pick">
+    <div class="char active" data-c="roma">🧔 Рома</div>
+    <div class="char" data-c="pasha">🤡 Паша</div>
+    <div class="char" data-c="egor">😎 Егор</div>
+    <div class="char" data-c="mira">🦊 Мира</div>
   </div>
   <div id="overlay">
-    <h1>🥃 ЧУШПАН В БАРЕ ЛОЛ 🥃</h1>
-    <p>← → двигайся</p>
-    <p>Лови 🍺 пиво, избегай 🔪 ножи и 💺 стулья</p>
-    <p>Собирай 🌻 семки — это валюта чушпана</p>
-    <p style="color:#ffcc00; margin-top:15px;">Бригада чушпанов одобряет</p>
-    <button onclick="startGame()">ПОГНАЛИ</button>
+    <h1>🍻 БАР ЛОЛ 🍻</h1>
+    <h2>ХАОС-ЧЕЛЛЕНДЖ</h2>
+    <p>◀ ▶ или свайп — двигайся</p>
+    <p>Тап по экрану — спецприём</p>
+    <p>Собирай 🍺 и 🌻, бей 🔪 и 💺</p>
+    <p style="color:#ffcc00; margin-top:10px;">4 персонажа • 4 стиля • 1 хаос</p>
+    <button id="startBtn">ПОГНАЛИ</button>
   </div>
 </div>
 
 <script>
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
-const W = canvas.width, H = canvas.height;
+const W = 500, H = 700;
 
-let player, items, score, lives, seeds, gameOver, spawnTimer, difficulty;
+const CHARS = {
+  roma:  { name:'Рома-Босс',     emoji:'🧔', hat:'🎩', speed:6, hp:3, ult:'salvo', desc:'Стреляет семками веером' },
+  pasha: { name:'Паша-Хаос',     emoji:'🤡', hat:'🎪', speed:5, hp:4, ult:'meteor', desc:'Кидает бомбу в деканат' },
+  egor:  { name:'Егор-Тень',     emoji:'😎', hat:'🕶', speed:8, hp:2, ult:'dash', desc:'Курит и уворачивается' },
+  mira:  { name:'Мира-Лис',      emoji:'🦊', hat:'✨', speed:7, hp:3, ult:'freeze', desc:'Замораживает всех' }
+};
+
+let player, items, score, lives, power, seeds, gameOver, spawnTimer, ultCD, freezeT, character, particles, effects;
 
 function init() {
-  player = { x: W/2, y: H-80, w: 50, h: 60, dx: 0, emoji: '🧔' };
-  items = [];
-  score = 0; lives = 3; seeds = 0;
-  gameOver = false; spawnTimer = 0; difficulty = 1;
+  character = 'roma';
+  player = { x: W/2, y: H-90, w: 50, h: 60, dx: 0, ...CHARS[character] };
+  items = []; particles = []; effects = [];
+  score = 0; lives = CHARS[character].hp; power = 100; seeds = 0;
+  gameOver = false; spawnTimer = 0; ultCD = 0; freezeT = 0;
 }
 
+// touch controls
+let touchX = null;
+const leftBtn = document.getElementById('left');
+const rightBtn = document.getElementById('right');
+leftBtn.ontouchstart = e => { e.preventDefault(); touchX = 'left'; };
+rightBtn.ontouchstart = e => { e.preventDefault(); touchX = 'right'; };
+leftBtn.ontouchend = rightBtn.ontouchend = () => touchX = null;
+leftBtn.onmousedown = () => touchX = 'left';
+rightBtn.onmousedown = () => touchX = 'right';
+leftBtn.onmouseup = rightBtn.onmouseup = () => touchX = null;
+
 const keys = {};
-window.addEventListener('keydown', e => keys[e.key] = true);
+window.addEventListener('keydown', e => { keys[e.key] = true; if (e.key === ' ') useUlt(); });
 window.addEventListener('keyup', e => keys[e.key] = false);
+
+canvas.addEventListener('touchstart', e => { e.preventDefault(); useUlt(); }, {passive:false});
+canvas.addEventListener('click', () => useUlt());
+
+// swipe
+let sx = null;
+canvas.addEventListener('touchstart', e => { sx = e.touches[0].clientX; });
+canvas.addEventListener('touchmove', e => {
+  if (sx === null) return;
+  const dx = e.touches[0].clientX - sx;
+  if (Math.abs(dx) > 30) { touchX = dx > 0 ? 'right' : 'left'; sx = e.touches[0].clientX; }
+});
+canvas.addEventListener('touchend', () => { sx = null; touchX = null; });
+
+document.querySelectorAll('.char').forEach(el => {
+  el.onclick = () => {
+    if (gameOver) return;
+    document.querySelectorAll('.char').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    character = el.dataset.c;
+    init();
+  };
+});
 
 function startGame() {
   init();
@@ -101,86 +133,122 @@ function startGame() {
   loop();
 }
 
+document.getElementById('startBtn').onclick = startGame;
+
 function spawnItem() {
-  const types = [
-    { emoji: '🍺', good: true, points: 10 },
-    { emoji: '🔪', good: false, dmg: 1 },
-    { emoji: '💺', good: false, dmg: 1 },
-    { emoji: '🌻', good: true, points: 25, seed: true },
-    { emoji: '🍺', good: true, points: 10 },
-    { emoji: '🍸', good: true, points: 15 },
-    { emoji: '🧨', good: false, dmg: 2 }
-  ];
-  const t = types[Math.floor(Math.random() * types.length)];
-  items.push({
-    x: 30 + Math.random() * (W-60),
-    y: -40,
-    r: 22,
-    dy: 2 + Math.random() * (1 + difficulty*0.3),
-    ...t
-  });
+  const r = Math.random();
+  let t;
+  if (r < 0.45) t = { emoji: '🍺', good: true, points: 10 };
+  else if (r < 0.7) t = { emoji: '🌻', good: true, points: 25, seed: true };
+  else if (r < 0.82) t = { emoji: '🍸', good: true, points: 15 };
+  else if (r < 0.95) t = { emoji: '🔪', good: false, dmg: 1 };
+  else t = { emoji: '💺', good: false, dmg: 1 };
+  items.push({ x: 30 + Math.random()*(W-60), y: -40, r: 22, dy: 2.5 + Math.random()*1.5, ...t });
 }
 
-function drawChushman() {
-  ctx.font = '50px serif';
-  ctx.textAlign = 'center';
-  ctx.fillText(player.emoji, player.x, player.y);
-  // шляпа чушпана
-  ctx.fillText('🎩', player.x, player.y - 35);
+function useUlt() {
+  if (gameOver || power < 50 || freezeT > 0) return;
+  power -= 50;
+  if (player.ult === 'salvo') {
+    for (let a = -2; a <= 2; a++) {
+      particles.push({ x: player.x, y: player.y, dx: a*2, dy: -8, life: 40, emoji: '🌻', big: true });
+    }
+  } else if (player.ult === 'meteor') {
+    for (let i = 0; i < 5; i++) {
+      setTimeout(() => {
+        if (gameOver) return;
+        const x = 50 + Math.random()*(W-100);
+        for (let j = 0; j < 8; j++) {
+          particles.push({ x: x + (Math.random()-0.5)*60, y: 50, dx: (Math.random()-0.5)*4, dy: 2+Math.random()*3, life: 60, emoji: '💥', big: true });
+        }
+        items.forEach(it => { if (Math.abs(it.x-x) < 80 && it.good) { score += it.points; if (it.seed) seeds++; } });
+        items = items.filter(it => Math.abs(it.x-x) >= 80 || it.good);
+      }, i*150);
+    }
+  } else if (player.ult === 'dash') {
+    player._dash = 30;
+  } else if (player.ult === 'freeze') {
+    freezeT = 180;
+  }
 }
 
 function loop() {
   if (gameOver) return;
   
   // input
-  if (keys['ArrowLeft'] || keys['a']) player.x -= 6;
-  if (keys['ArrowRight'] || keys['d']) player.x += 6;
-  player.x = Math.max(25, Math.min(W-25, player.x));
+  let mv = 0;
+  if (keys['ArrowLeft'] || keys['a'] || touchX === 'left') mv = -1;
+  if (keys['ArrowRight'] || keys['d'] || touchX === 'right') mv = 1;
+  const sp = player._dash > 0 ? player.speed*2.5 : player.speed;
+  if (player._dash > 0) player._dash--;
+  player.x = Math.max(25, Math.min(W-25, player.x + mv*sp));
   
   // spawn
   spawnTimer++;
-  if (spawnTimer > Math.max(15, 40 - difficulty*2)) {
-    spawnItem();
-    spawnTimer = 0;
-  }
-  if (score > 0 && score % 100 === 0) difficulty = score/100 + 1;
+  if (spawnTimer > 25) { spawnItem(); spawnTimer = 0; }
+  
+  // passive
+  if (power < 100) power += 0.15;
+  if (ultCD > 0) ultCD--;
   
   // draw
-  ctx.clearRect(0, 0, W, H);
-  // пол бара
-  ctx.fillStyle = '#3d1a5e';
-  ctx.fillRect(0, H-40, W, 40);
-  // стойка
-  ctx.fillStyle = '#5e2a7e';
-  ctx.fillRect(0, H-40, W, 5);
+  ctx.clearRect(0,0,W,H);
+  // floor
+  ctx.fillStyle = '#3d1a5e'; ctx.fillRect(0, H-50, W, 50);
+  ctx.fillStyle = '#5e2a7e'; ctx.fillRect(0, H-50, W, 4);
+  // bar counter
+  ctx.fillStyle = '#1a052e'; ctx.fillRect(W-120, H-130, 110, 70);
+  ctx.fillStyle = '#ffcc00'; ctx.font = '20px serif'; ctx.textAlign = 'center';
+  ctx.fillText('🍻 БАР ЛОЛ', W-65, H-85);
   
-  drawChushman();
+  // freeze overlay
+  if (freezeT > 0) {
+    ctx.fillStyle = 'rgba(100,200,255,0.15)'; ctx.fillRect(0,0,W,H);
+    freezeT--;
+  }
+  
+  // player
+  ctx.font = '50px serif'; ctx.textAlign = 'center';
+  ctx.fillText(player.emoji, player.x, player.y);
+  ctx.font = '30px serif';
+  ctx.fillText(player.hat, player.x, player.y - 35);
+  if (player._dash > 0) {
+    ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(player.x, player.y, 35, 0, Math.PI*2); ctx.stroke();
+  }
   
   // items
   for (let i = items.length-1; i >= 0; i--) {
     const it = items[i];
-    it.y += it.dy;
-    ctx.font = '36px serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(it.emoji, it.x, it.y);
-    
-    // collision
+    it.y += freezeT > 0 ? it.dy*0.2 : it.dy;
+    ctx.font = '32px serif'; ctx.fillText(it.emoji, it.x, it.y);
     if (Math.abs(it.x - player.x) < 35 && Math.abs(it.y - player.y) < 40) {
-      if (it.good) {
-        score += it.points;
-        if (it.seed) seeds++;
-        flashColor = '#00ff88';
-      } else {
-        lives -= it.dmg;
-        flashColor = '#ff0000';
-      }
+      if (it.good) { score += it.points; if (it.seed) seeds++; }
+      else { lives -= it.dmg; }
+      particles.push({ x: it.x, y: it.y, life: 20, emoji: it.good ? '✨' : '💢' });
       items.splice(i, 1);
       continue;
     }
-    
-    if (it.y > H + 20) {
-      if (it.good && !it.seed) score += 2; // упустил пиво = штраф моральный
-      items.splice(i, 1);
+    if (it.y > H + 20) items.splice(i, 1);
+  }
+  
+  // particles
+  for (let i = particles.length-1; i >= 0; i--) {
+    const p = particles[i];
+    p.x += (p.dx||0); p.y += (p.dy||0);
+    p.life--;
+    ctx.font = (p.big?28:20)+'px serif';
+    ctx.globalAlpha = Math.max(0, p.life/40);
+    ctx.fillText(p.emoji, p.x, p.y);
+    ctx.globalAlpha = 1;
+    if (p.life <= 0) particles.splice(i, 1);
+    if (p.dy !== undefined) {
+      for (let j = items.length-1; j >= 0; j--) {
+        const it = items[j];
+        if (Math.abs(p.x - it.x) < 30 && Math.abs(p.y - it.y) < 30) {
+          if (!it.good) { items.splice(j, 1); score += 5; }
+        }
+      }
     }
   }
   
@@ -188,6 +256,7 @@ function loop() {
   
   document.getElementById('score').textContent = score;
   document.getElementById('lives').textContent = lives;
+  document.getElementById('power').textContent = Math.floor(power);
   document.getElementById('seeds').textContent = seeds;
   
   requestAnimationFrame(loop);
@@ -198,11 +267,10 @@ function endGame() {
   const o = document.getElementById('overlay');
   o.classList.remove('hidden');
   o.innerHTML = `
-    <h1>💀 ТЫ ОТКИС 💀</h1>
-    <p>Очки: <b style="color:#ffcc00">${score}</b></p>
-    <p>Семки: <b style="color:#ffcc00">${seeds}</b></p>
-    <p style="margin-top:15px;">${score < 50 ? 'Егор бы справился лучше' : 'Чушпан уровень: БОГ'}</p>
-    <button onclick="startGame()">ЕЩЁ РАЗ</button>
+    <h1>💀 ${CHARS[character].name} откис 💀</h1>
+    <h2>Очки: <b>${score}</b> • Семки: <b>${seeds}</b></h2>
+    <p>${score < 100 ? 'Рома бы не одобрил' : score < 300 ? 'Чушпан уровень: крепкий' : '🏆 ЛЕГЕНДА БАРА ЛОЛ 🏆'}</p>
+    <button onclick="location.reload()">СНОВА</button>
   `;
 }
 </script>
